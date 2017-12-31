@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# ensure that einfo etc are available
+PATH="$( "${PALUDIS_EBUILD_DIR}/utils/canonicalise" "${PALUDIS_EBUILD_DIR}/utils/" ):${PATH}"; export PATH
+source "${PALUDIS_EBUILD_DIR}/echo_functions.bash"
+source /etc/paludis/paludis_aux.bash
+
+hook_run_sync_all_pre()
+{
+
+	_bypass check
+	if [[ $? -eq 22 ]]; then
+		return 0
+	fi
+	einfo "Fix permissions..."
+	/usr/local/sbin/cave.fix-perm \
+		|| _kill_cave_now "failed"
+}
+
+hook_auto_names() { echo sync_all_pre; }

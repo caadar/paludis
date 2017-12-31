@@ -1,0 +1,6 @@
+master_repository = gentoo
+location = ${ROOT}/usr/local/repo-bin
+format = e
+binary_destination = true
+binary_distdir = ${distdir}
+binary_keywords_filter = amd64 ~amd64

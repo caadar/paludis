@@ -1,0 +1,11 @@
+--- a/fs/reiserfs/reiserfs.h	2017-03-30 10:44:36.000000000 +0300
++++ b/fs/reiserfs/reiserfs.h	2017-03-30 23:40:35.630308400 +0300
+@@ -1969,7 +1969,7 @@
+ 				__le32 par_dirid, __le32 par_objid);
+ 
+ /* two entries per block (at least) */
+-#define REISERFS_MAX_NAME(block_size) 255
++#define REISERFS_MAX_NAME(block_size) 1023
+ 
+ /*
+  * this structure is used for operations on directory entries. It is

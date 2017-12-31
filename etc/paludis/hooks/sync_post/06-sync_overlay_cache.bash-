@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# if it's really needed include repo in `/etc/portage/repos.conf/'
+# https://wiki.gentoo.org/wiki/Egencache
+# https://wiki.gentoo.org/wiki//etc/portage/repos.conf
+
+source "${PALUDIS_EBUILD_DIR}/echo_functions.bash"
+source "/etc/paludis/hooks/set_portdir.bash"
+
+if [[ ${TARGET} != gentoo && $(${CAVE} print-repository-metadata --raw-name format --format "%v" ${TARGET}) == e ]] ; then
+    # Number of jobs for egencache, default is number or processors.
+    egencache_jobnum="$(nproc)"
+
+    ebegin "Cache update for repository ${TARGET}"
+    egencache --jobs=${egencache_jobnum} --repo=${TARGET} --update --update-use-local-desc
+    eend $?
+fi

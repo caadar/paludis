@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+hook_run_merger_install_pre()
+{
+	source /etc/paludis/paludis_aux.bash
+
+	if [[ "${CATEGORY}/${PN}" != "net-mail/notmuch" ]]; then
+		return 0
+	fi
+
+	local owner="Cddr"
+	local tempdir="/home/${owner}/tmp/"
+	cp -af "/home/${owner}/.maildir/.notmuch/xapian" "${tempdir}/xapian.$(date '+%y%m%d%H%M')" \
+		|| _kill_cave_now "Can't make reserve Xapian DB copy"
+	echo "Xapian DB backup succeed"
+}

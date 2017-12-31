@@ -1,0 +1,37 @@
+*** ./modules/mode-line.js	2016-06-01 22:18:11.000000000 +0300
+--- ./modules/mode-line.js.new	2016-06-01 22:25:54.000000000 +0300
+***************
+*** 153,158 ****
+--- 153,184 ----
+      }
+  };
+  
++ function current_buffer_session_widget(window) {
++     this.name = "current-buffer-session-widget";
++     text_widget.call(this, window);
++     this.add_hook("current_content_buffer_location_change_hook");
++     this.add_hook("select_buffer_hook");
++ }
++ current_buffer_session_widget.prototype.__proto__ = text_widget.prototype;
++ current_buffer_session_widget.prototype.update = function () {
++     var session = this.window.buffers.current.web_navigation.sessionHistory;
++     var before = "";
++     var after = "";
++     var separator = "";
++     if (session.index > 0)
++     {
++ 		before = session.index + "<";
++     }
++     if (session.count-session.index-1)
++     {
++ 		after = ">" + (session.count - session.index - 1);
++     }
++     if (before && after)
++     {
++ 		separator = " ";
++     }
++     this.view.text = before + separator + after;
++ };
+  
+  /**
+   * current_buffer_scroll_position_widget shows the vertical and horizontal

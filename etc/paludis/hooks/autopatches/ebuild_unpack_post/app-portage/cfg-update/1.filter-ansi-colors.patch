@@ -1,0 +1,19 @@
+*** ./cfg-update_indexing	2016-06-10 11:41:08.394504616 +0300
+--- ./cfg-update_indexing.new	2016-06-10 11:41:51.966529963 +0300
+***************
+*** 4,10 ****
+  einfo "cfg-update:"
+  
+  if [ -e "/usr/bin/cfg-update" ]; then
+!     cfg-update --index --paludis
+  else
+      ewarn "cfg-update not found, please remove $0"
+  fi
+--- 4,10 ----
+  einfo "cfg-update:"
+  
+  if [ -e "/usr/bin/cfg-update" ]; then
+!     cfg-update --index --paludis | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip $_'
+  else
+      ewarn "cfg-update not found, please remove $0"
+  fi

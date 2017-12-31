@@ -1,0 +1,18 @@
+https://bugs.gentoo.org/show_bug.cgi?id=625212
+
+diff -ur paludis.orig/paludis/repositories/e/xml_things.cc paludis/paludis/repositories/e/xml_things.cc
+--- paludis.orig/paludis/repositories/e/xml_things.cc	2017-02-19 19:06:15.000000000 +0100
++++ paludis/paludis/repositories/e/xml_things.cc	2017-07-15 13:54:58.190483789 +0200
+@@ -189,7 +189,11 @@
+                         if (name == "range")
+                             op = fix_whitespace(unstupid_libxml_string(xmlNodeListGetString(doc, a->xmlChildrenNode, 1)));
+                         else if (name == "slot")
+-                            slot = fix_whitespace(unstupid_libxml_string(xmlNodeListGetString(doc, a->xmlChildrenNode, 1)));
++                        {
++                            std::string slot_attr(fix_whitespace(unstupid_libxml_string(xmlNodeListGetString(doc, a->xmlChildrenNode, 1))));
++                            if (!slot_attr.empty())
++                                slot = slot_attr;
++                        }
+                     }
+                 }
+             }

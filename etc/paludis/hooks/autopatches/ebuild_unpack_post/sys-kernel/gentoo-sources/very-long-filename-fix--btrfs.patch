@@ -1,0 +1,11 @@
+--- a/fs/btrfs/ctree.h	2017-03-30 10:44:36.000000000 +0300
++++ b/fs/btrfs/ctree.h	2017-03-30 23:37:35.402060377 +0300
+@@ -76,7 +76,7 @@
+  * we can actually store much bigger names, but lets not confuse the rest
+  * of linux
+  */
+-#define BTRFS_NAME_LEN 255
++#define BTRFS_NAME_LEN 1023
+ 
+ /*
+  * Theoretical limit is larger, but we keep this down to a sane

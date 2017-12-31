@@ -1,0 +1,262 @@
+--- ./cfg-update	2016-11-11 07:25:37.178769622 +0300
++++ ./cfg-update.new	2016-11-11 07:25:37.182769714 +0300
+@@ -1,6 +1,7 @@
+ #!/usr/bin/perl -w
+ use strict;
+ use File::Basename;
++use Cwd 'abs_path';
+ use Getopt::Long qw(:config bundling permute pass_through);
+ use Term::ANSIColor qw(:constants);
+ use Term::ReadKey;
+@@ -24,6 +24,13 @@
+ 
+ # 1. Some support for Emacs Ediff through external script
+ 
++# 2. Workaround for permissions problem:
++#    https://bugs.gentoo.org/show_bug.cgi?id=230183
++#    https://forums.gentoo.org/viewtopic-p-4956584.html?sid=2de2fec90c007a3d3e8e281d22e805d6#4956584
++#    Solution: always keep setted permissions/UID/GID for file and issue a warning if unexpected changes
++#    should be done
++
++######################################################################################################################
+ #                                          TODO_LIST                                                                 #
+ ######################################################################################################################
+ 
+@@ -218,12 +226,13 @@
+     my $file5;        # /path/file.merge            <--  merged result
+     my $file6;        # /path/._temp_old-cfg_file   <--  temporary copy of current /etc/foo during merging
+     my $file7;        # /path/._temp_new-cfg_file   <--  temporary copy of current /etc/._cfg0000_foo during merging
+-    my $executable;
++    # my $executable;
+     my $ancestor;
+     my $log_pkg   = "";
+     my $index_pkg = "";
+     my $tab       = "";
+     my $env       = " ";
++    my $warn_issued;
+ 
+ ######################################################################################################################
+ #                                          COMMANDLINE ARGUMENT HANDLING                                            #
+@@ -985,6 +994,103 @@
+     if ($opt_d >= 1) { $tab =~ s/    //; print "$tab"."</prepare_filenames_for_updating>\n"; }
+ }
+ 
++
++sub get_perm{
++	`stat --printf "%a" $_[0]`;
++}
++
++sub get_uid{
++	`stat --printf "%u" $_[0]`;
++}
++
++sub get_gid{
++	`stat --printf "%g" $_[0]`;
++}
++
++sub warn_perm{
++	print RED "$tab"."Attention!  $file1: proposed permissions";
++	print BOLD RED "$tab"."  $_[1]  ";
++	print RED "$tab"."instead of";
++	print BOLD RED "$tab"."  $_[0]  ";
++	print RED "$tab"."current ones\n";
++	$warn_issued = 1;
++}
++
++sub warn_uid{
++	print RED "$tab"."Attention!  $file1: proposed UID";
++	print BOLD RED "$tab"."  $_[1]  ";
++	print RED "$tab"."instead of";
++	print BOLD RED "$tab"."  $_[0]  ";
++	print RED "$tab"."current one\n";
++	$warn_issued = 1;
++}
++
++sub warn_gid{
++	print RED "$tab"."Attention!  $file1: proposed GID";
++	print BOLD RED "$tab"."  $_[1]  ";
++	print RED "$tab"."instead of";
++	print BOLD RED "$tab"."  $_[0]  ";
++	print RED "$tab"."current one\n";
++	$warn_issued = 1;
++}
++
++sub check_file{
++    if ((-f $file1) && (-f $file2)) {
++		my $access_rights1 = &get_perm("$file1");
++		my $owner1 = &get_uid("$file1");
++		my $group1 = &get_gid("$file1");
++		my $access_rights2 = &get_perm("$file2");
++		my $owner2 = &get_uid("$file2");
++		my $group2 = &get_gid("$file2");
++		my $access_rights3 = "";
++		my $owner3 = "";
++		my $group3 = "";
++		my $access_rights4 = "";
++		my $owner4 = "";
++		my $group4 = "";
++		if (-f $file3) {
++			$access_rights3 = &get_perm("$file3");
++			$owner3 = &get_uid("$file3");
++			$group3 = &get_gid("$file3");
++		}
++		if (-f $file4) {
++			$access_rights4 = &get_perm("$file4");
++			$owner4 = &get_uid("$file4");
++			$group4 = &get_gid("$file4");
++		}
++		if ($access_rights1 ne $access_rights2) {
++			if ($access_rights2 ne $access_rights4) {
++				&warn_perm($access_rights1, $access_rights2);
++			} else {
++				if ($access_rights1 ne $access_rights3) {
++					&warn_perm($access_rights1, $access_rights2);
++				}
++			}
++		}
++		if ($group1 ne $group2) {
++			if ($group2 ne $group4) {
++				&warn_uid($group1, $group2);
++			} else {
++				if ($group1 ne $group3) {
++					&warn_uid($group1, $group2);
++				}
++			}
++		}
++		if ($owner1 ne $owner2) {
++			if ($owner2 ne $owner4) {
++				&warn_gid($owner1, $owner2);
++			} else {
++				if ($owner1 ne $owner3) {
++					&warn_gid($owner1, $owner2);
++				}
++			}
++		}
++		if ($warn_issued) {
++			print "\n";
++		}
++	}
++}
++
+ sub determine_state{ #DEPS# (requires that global variable $file1 contains a filename)
+     if ($opt_d >= 1) { print "$tab"."<determine_state>\n"; $tab = $tab."    "; }
+     if (-f $index_file) {
+@@ -1039,12 +1145,12 @@
+         $merge_conflict = "false";
+     }
+     if ($opt_d >= 1) { print "$tab"."  Merge conflict detected   : $merge_conflict\n"; }
+-    if (-x $file1) {
+-        $executable = "yes";
+-    } else {
+-        $executable = "no";
+-    }
+-    if ($opt_d >= 1) { print "$tab"."  Executable file           : $executable\n"; }
++    # if (-x $file1) {
++    #     $executable = "yes";
++    # } else {
++    #     $executable = "no";
++    # }
++    # if ($opt_d >= 1) { print "$tab"."  Executable file           : $executable\n"; }
+     if ($opt_d >= 1) { $tab =~ s/    //; print "$tab"."</determine_state>\n"; }
+ }
+ 
+@@ -1218,6 +1324,7 @@
+         for (my $i = 0; $i < @stage1_queue; ++$i) {
+             &prepare_filenames_for_updating($stage1_queue[$i]);
+             &determine_state;
++			&check_file;
+             $num++;
+             &make_temp_backups;
+             print "$tab"."($num/$totalcount)  $file1  *$vstate\n";
+@@ -1255,6 +1362,7 @@
+         for (my $i = 0; $i < @stage2_queue; ++$i) {
+             &prepare_filenames_for_updating($stage2_queue[$i]);
+             &determine_state;
++			&check_file;
+             $num++;
+             &make_temp_backups;
+             print "$tab"."($num/$totalcount)  $file1  *$vstate\n";
+@@ -1300,6 +1408,7 @@
+         for (my $i = 0; $i < @stage3_queue; ++$i) {
+             &prepare_filenames_for_updating($stage3_queue[$i]);
+             &determine_state;
++			&check_file;
+             $num++;
+             &make_temp_backups;
+             &md5sum("$file1"); $md5sum_before = $md5sum;
+@@ -1427,6 +1536,7 @@
+         for (my $i = 0; $i < @stage4_queue; ++$i) {
+             &prepare_filenames_for_updating($stage4_queue[$i]);
+             &determine_state;
++			&check_file;
+             $num++;
+             &make_temp_backups;
+             &md5sum("$file1"); $md5sum_before = $md5sum;
+@@ -1565,6 +1675,7 @@
+         for (my $i = 0; $i < @stage5_queue; ++$i) {
+             &prepare_filenames_for_updating($stage5_queue[$i]);
+             &determine_state;
++			&check_file;
+             $num++;
+             &make_temp_backups;
+             print "$tab"."($num/$totalcount)  $file1  *$vstate\n";
+@@ -1692,6 +1803,12 @@
+     if ($opt_d >= 1) { print "$tab"."<update_merge_complete>\n"; $tab = $tab."    "; }
+ #    print "$tab"."  Replacing current config file with $file5\n";
+     print "$tab"."  Replacing it with $file5\n";
++    if ((-f $file1) && (-f $file2)) {
++		if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"." chown --reference=\"$file1\" \"$file5\"\n"; }
++		if ($_[0] =~ /execute/) { `chown --reference="$file1" "$file5" $debug`; }
++		if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"." chmod --reference=\"$file1\" \"$file5\"\n"; }
++		if ($_[0] =~ /execute/) { `chmod --reference="$file1" "$file5" $debug`; }
++    }
+     if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  cp -pP \"$file5\" \"$file1\"\n"; }
+     if ($_[0] =~ /execute/) { `cp -pP "$file5" "$file1" $debug`; }
+     if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  rm -f \"$file5\"\n"; }
+@@ -1706,8 +1823,8 @@
+     if ($_[0] =~ /execute/) { `cp -pP "$file7" "$file4" $debug`; }
+     if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  rm -f \"$file7\"\n"; }
+     if ($_[0] =~ /execute/) { `rm -f "$file7" $debug`; }
+-    if (($opt_v >= 1) || ($opt_d >= 1)) { if ($executable =~ "yes") { print "$tab"."  chmod +x $file1\n"; }}
+-    if ($_[0] =~ /execute/) { if ($executable =~ "yes") { `chmod +x "$file1" $debug`; }}
++    # if (($opt_v >= 1) || ($opt_d >= 1)) { if ($executable =~ "yes") { print "$tab"."  chmod +x $file1\n"; }}
++    # if ($_[0] =~ /execute/) { if ($executable =~ "yes") { `chmod +x "$file1" $debug`; }}
+     print BOLD GREEN "$tab"."Update complete...\n\n";
+ #    my $merge_action = "$file1;$md5sum_before::$file2;$md5sum_update=>$file1;$md5sum_after";
+ #    print "$tab"."$merge_action\n";
+@@ -1724,7 +1841,12 @@
+     if (-l $file1) {
+         if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  rm -f \"$file1\"\n"; }
+         if ($_[0] =~ /execute/) { `rm -f "$file1" $debug`; } # remove original file first if it's a symlink, otherwise the contents of new file is copied into link target!
+-    }
++    } else {
++		if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"." chown --reference=\"$file1\" \"$file2\"\n"; }
++		if ($_[0] =~ /execute/) { `chown --reference="$file1" "$file2" $debug`; }
++		if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"." chmod --reference=\"$file1\" \"$file2\"\n"; }
++		if ($_[0] =~ /execute/) { `chmod --reference="$file1" "$file2" $debug`; }
++	}
+     if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  cp -pP \"$file2\" \"$file1\"\n"; }
+     if ($_[0] =~ /execute/) { `cp -pP "$file2" "$file1" $debug`; }
+     if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  rm -f \"$file2\"\n"; }
+@@ -1739,8 +1861,8 @@
+     if ($_[0] =~ /execute/) { `rm -f "$file7" $debug`; }
+     if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  rm -f \"$file5\" (should not exist!)\n"; }
+     if ($_[0] =~ /execute/) { `rm -f "$file5" $debug`; }
+-    if (($opt_v >= 1) || ($opt_d >= 1)) { if ($executable =~ "yes") { print "$tab"."  chmod +x $file1\n"; }}
+-    if ($_[0] =~ /execute/) { if ($executable =~ "yes") { `chmod +x "$file1" $debug`; }}
++    # if (($opt_v >= 1) || ($opt_d >= 1)) { if ($executable =~ "yes") { print "$tab"."  chmod +x $file1\n"; }}
++    # if ($_[0] =~ /execute/) { if ($executable =~ "yes") { `chmod +x "$file1" $debug`; }}
+     print BOLD GREEN "$tab"."Update complete...\n\n";
+ #    my $merge_action = "$file1;$md5sum_before::$file2;$md5sum_update=>$file1;$md5sum_after";
+ #    print "$tab"."$merge_action\n";
+@@ -1764,8 +1886,8 @@
+     if ($_[0] =~ /execute/) { `rm -f "$file7" $debug`; }
+     if (($opt_v >= 1) || ($opt_d >= 1)) { print "$tab"."  rm -f \"$file5\" (should not exist)\n"; }
+     if ($_[0] =~ /execute/) { `rm -f "$file5" $debug`; }
+-    if (($opt_v >= 1) || ($opt_d >= 1)) { if ($executable =~ "yes") { print "$tab"."  chmod +x $file1\n"; }}
+-    if ($_[0] =~ /execute/) { if ($executable =~ "yes") { `chmod +x "$file1" $debug`; }}
++    # if (($opt_v >= 1) || ($opt_d >= 1)) { if ($executable =~ "yes") { print "$tab"."  chmod +x $file1\n"; }}
++    # if ($_[0] =~ /execute/) { if ($executable =~ "yes") { `chmod +x "$file1" $debug`; }}
+     print BOLD GREEN "$tab"."Update complete...\n\n";
+ #    my $merge_action = "$file1;$md5sum_before::$file2;$md5sum_update=>$file1;$md5sum_after";
+ #    print "$tab"."$merge_action\n";

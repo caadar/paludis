@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#
+# https://bugs.gentoo.org/show_bug.cgi?id=518332
+
+hook_run_merger_install_post()
+{
+	# ensure that einfo etc are available
+	export PATH="$(${PALUDIS_EBUILD_DIR}/utils/canonicalise ${PALUDIS_EBUILD_DIR}/utils/ ):${PATH}"
+	source ${PALUDIS_EBUILD_DIR}/echo_functions.bash
+	source /etc/paludis/paludis_aux.bash
+
+	if [[ "${CATEGORY}/${PN}" != "sys-apps/util-linux" ]]; then
+		return 0
+	fi
+
+	local culprit="/usr/lib64/$(eselect --brief python show)/site-packages/libmount/pylibmount.la"
+	local anchor="dependency_libs="
+	local aims=("/usr/lib64/libmount.la"
+				"/usr/lib64/libblkid.la"
+				"/usr/lib64/libuuid.la")
+	for i in ${aims[@]} ; do
+		grep "${anchor}" "${culprit}" | grep "${i}" &>/dev/null
+		pret="$?"
+		if [[ "${pret}" = "0" ]]; then
+			sed '/'${anchor}'/s#'${i}'##' -i "${culprit}"
+		else
+			_kill_cave_now "It seems ${CATEGORY}/${PN} is free from bug #518332"
+		fi
+	done
+}

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+hook_run_merger_install_post()
+{
+	source /etc/paludis/paludis_aux.bash
+
+	if [[ "${CATEGORY}/${PN}" != "app-dicts/aspell-ru" ]]; then
+		return 0
+	fi
+
+	/usr/local/libexec/make-enru-aspelldict \
+		|| _kill_cave_now "make-enru-aspelldict failed!"
+	echo "EN-RU aspell dictionary merged successfully"
+}

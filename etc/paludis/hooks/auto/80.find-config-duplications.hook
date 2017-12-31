@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# ensure that einfo etc are available
+export PATH="$(${PALUDIS_EBUILD_DIR}/utils/canonicalise ${PALUDIS_EBUILD_DIR}/utils/ ):${PATH}"
+source ${PALUDIS_EBUILD_DIR}/echo_functions.bash
+source /etc/paludis/paludis_aux.bash
+
+hook_run_install_all_post()
+{
+
+	_bypass check
+	if [[ $? -eq 22 ]]; then
+		return 0
+	fi
+	local dups=$(find /etc -name "init.d" -prune -o                     \
+					  -regex ".*/\.keep.*" -prune -o                    \
+					  -regex ".*/autopatches/.*" -prune -o              \
+					  -regex ".*/README" -prune -o                      \
+					  -regex ".*/default" -prune -o                     \
+					  -type f -mtime -1 -printf '%f\n'                  \
+					 | xargs -i find /etc -type f -name {} 2>/dev/null  \
+					 | grep -v init.d                                   \
+					 | sed 's@^.*/@@g'                                  \
+					 | sort                                             \
+					 | uniq -d                                          \
+					 | xargs -i find /etc -type f -name {} 2>/dev/null  \
+					 | grep -v init.d)
+	for i in ${dups}; do
+		current=$(basename "$i")
+		if [[ "${current}" != "${previous}" ]]
+		then
+			output="${output}
+$i"
+			previous="${current}"
+		else
+			output="${output}
+$i"
+			previous="${current}"
+		fi
+	done
+
+	if  [[ -n ${dups} ]]
+	then
+		ewarn "Duplication in /etc found. Check it"
+		ewarn "${output}"
+	else
+		true
+	fi
+}
+
+hook_auto_names() { echo install_all_post; }

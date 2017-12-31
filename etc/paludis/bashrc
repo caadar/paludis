@@ -1,0 +1,71 @@
+#-*- mode: shell-script -*-
+
+# in case of `cfg-update' usage `CONFIG_PROTECT_MASK' is no longer needed
+#
+# man(1) emerge:
+# You can disable this feature by setting CONFIG_PROTECT="-*" in
+# make.conf
+#
+# man(5) make.conf:
+# Exceptions are incremental variables such as USE, CONFIG_PROTECT*,
+# and ACCEPT_KEYWORDS. Incremental variables are propagated down from
+# make.defaults to make.globals to make.conf to the environment
+# settings. Clearing these variables requires a clear-all as in:
+# export USE="-*"
+#CONFIG_PROTECT_MASK="-*"
+
+
+### compiler options
+
+CFLAGS="-O2 -march=native"
+CHOST="x86_64-pc-linux-gnu"
+CXXFLAGS="${CFLAGS}"
+#MAKEOPTS="-j3"
+#LDFLAGS="-Wl,-O1"
+
+### hook controls
+
+# autopatch
+#PALUDIS_AUTOPATCH_HOOK_DO_NOTHING="yes"  #(disables all actions of this hook)
+PALUDIS_AUTOPATCH_HOOK_NO_WARNING="yes"   #(mutes annoying warnings about altered packages)
+
+# filesystem manager
+# see /etc/paludis/hooks/configs/filesystem-manager.conf and
+# https://github.com/zaufi/paludis-config/blob/hardware/notebook/MSI-GP60-2PE-Leopard/hooks/configs/filesystem-manager.conf
+#PALUDIS_HOOK_DEBUG="yes"                  #(dumps enviroment variables to file /tmp/paludis-fsm-hook-env.log)
+#PALUDIS_FILESYSTEM_HOOK_DO_NOTHING="yes"  #(disables all actions of this hook)
+PALUDIS_FILESYSTEM_HOOK_NO_WARNING="yes"   #(mutes annoying warnings about altered packages)
+
+# package.env
+if [[ -e /usr/libexec/paludis-hooks/setup_pkg_env.bash ]]; then
+	source /usr/libexec/paludis-hooks/setup_pkg_env.bash
+fi
+
+### PaX
+
+# pax-utils.eclass:
+#
+# To control what markings are made, set PAX_MARKINGS in
+# /etc/portage/make.conf to contain either "PT", "XT" or "none". The
+# default is to attempt both PT_PAX and XATTR_PAX.
+
+PAX_MARKINGS=none
+
+### distcc settings
+
+#REALPATH="${PATH}"
+#REALSANDBOX_WRITE="${SANDBOX_WRITE}"
+#DISTCC_DIR="/var/tmp/paludis/.distcc"
+##EMAKE_WRAPPER="/usr/bin/pump"
+##DISTCC_HOSTS="192.168.1.33,cpp,lzo"
+##DISTCC_HOSTS="192.168.1.33"
+#DISTCC_HOSTS="fireball"
+#PATH_ORIG="${PATH}"
+#PATH="/usr/lib/distcc/bin:${PATH}"
+#SANDBOX_WRITE="${SANDBOX_WRITE}:${DISTCC_DIR}"
+
+### per app tricks
+
+#if [[ "${CATEGORY}/${PN}" == "app-office/ledger" ]]; then
+#    MAKEOPTS="-j1"
+#fi

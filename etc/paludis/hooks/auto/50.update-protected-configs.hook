@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# ensure that einfo etc are available
+PATH="$( "${PALUDIS_EBUILD_DIR}/utils/canonicalise" "${PALUDIS_EBUILD_DIR}/utils/" ):${PATH}"; export PATH
+source "${PALUDIS_EBUILD_DIR}/echo_functions.bash"
+source /etc/paludis/paludis_aux.bash
+
+hook_run_install_all_post()
+{
+
+	_bypass check
+	if [[ $? -eq 22 ]]; then
+		return 0
+	fi
+ 	einfo "Automatic-only update protected configuration files..."
+ 	cfg-update -ua | perl -MTerm::ANSIColor=colorstrip -ne 'print colorstrip $_'
+                   # https://www.linux.org.ru/forum/admin/12626883
+}
+
+hook_auto_names() { echo install_all_post; }

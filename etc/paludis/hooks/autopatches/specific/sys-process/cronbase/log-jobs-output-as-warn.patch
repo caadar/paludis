@@ -1,0 +1,26 @@
+*** ./usr/sbin/run-crons	2016-06-03 11:17:12.000000000 +0300
+--- ./usr/sbin/run-crons	2016-06-03 11:25:02.000000000 +0300
+***************
+*** 153,160 ****
+  				esac
+  
+  				log info "($(whoami)) CMD (${SCRIPT})"
+! 				$SCRIPT
+  				ret=$?
+  				if [ ${ret} -ne 0 ] ; then
+  					log err "CMD (${SCRIPT}) failed with exit status ${ret}"
+  					EXIT_STATUS=1
+--- 153,165 ----
+  				esac
+  
+  				log info "($(whoami)) CMD (${SCRIPT})"
+! 				out=$($SCRIPT)
+  				ret=$?
++ 				if [ "${out}" ] ; then
++ 					log warn "CMD (${SCRIPT}) output: ${out}"
++ 					echo "${out}"
++ 				fi
++ 
+  				if [ ${ret} -ne 0 ] ; then
+  					log err "CMD (${SCRIPT}) failed with exit status ${ret}"
+  					EXIT_STATUS=1

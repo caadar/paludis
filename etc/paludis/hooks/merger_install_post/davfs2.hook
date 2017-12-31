@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+hook_run_merger_install_post()
+{
+	source /etc/paludis/paludis_aux.bash
+
+	if [[ "${CATEGORY}/${PN}" != "net-fs/davfs2" ]]; then
+		return 0
+	fi
+
+	_secrets_file="/etc/davfs2/secrets"
+
+	if [[ $(stat --printf="%a" ${_secrets_file}) = 600 ]]
+	then
+		einfo "/etc/davfs2/secrets has right permissions. Correction not needed"
+	else
+		einfo "Permissions of /etc/davfs2/secrets setted as 0600"
+		chmod 0600 ${_secrets_file}
+	fi
+}

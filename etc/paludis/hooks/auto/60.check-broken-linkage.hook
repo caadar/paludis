@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# ensure that einfo etc are available
+export PATH="$(${PALUDIS_EBUILD_DIR}/utils/canonicalise ${PALUDIS_EBUILD_DIR}/utils/ ):${PATH}"
+source ${PALUDIS_EBUILD_DIR}/echo_functions.bash
+source /etc/paludis/paludis_aux.bash
+
+_fix_linkage()
+{
+
+	_bypass check
+	if [[ $? -eq 22 ]]; then
+		return 0
+	fi
+	einfo "Broken linkage test..."
+	cave fix-linkage
+}
+
+hook_run_install_all_post() { _fix_linkage; }
+hook_run_uninstall_all_post() { _fix_linkage; }
+hook_auto_names() { echo {un,}install_all_post; }

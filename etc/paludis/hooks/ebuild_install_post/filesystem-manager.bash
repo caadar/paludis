@@ -1,0 +1,1 @@
+/usr/share/paludis-hooks/filesystem-manager.bash

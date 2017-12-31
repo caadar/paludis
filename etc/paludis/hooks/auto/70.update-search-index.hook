@@ -1,0 +1,93 @@
+#!/bin/bash
+##
+## Automatically update the cave search index in the background.
+##
+## IMPORTANT: this hook requires sys-apps/paludis to be built with the
+## "search-index" option, and "--index /PATH/FILE" (with existing writable
+## PATH) to be specified in the global CAVE_SEARCH_OPTIONS variable.
+##
+## Copyright (C) 2014 Tobias Geerinckx-Rice (nckx) <tobias.geerinckx.rice@gmail.com>
+## https://github.com/nckx/palplus-hooks/blob/master/auto/update-search-index.hook
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License along
+## with this program; if not, write to the Free Software Foundation, Inc.,
+## 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+##
+_update_cave_search_index() {
+	##
+	## Try to be clever: using CAVE_SEARCH_OPTIONS is recommended anyway
+	## so attempt to sniff out the index file location automatically
+	##
+	local argument option= index_file=
+
+	for argument in ${CAVE_SEARCH_OPTIONS}; do
+		if [[ "${option}" == --index ]]; then
+			index_file="${argument}"
+			break
+		fi
+		option="${argument}"
+	done
+	local cave=( nice -n 19 ionice -c idle "${CAVE%% *}" )
+	if [[ "${index_file}" ]]; then
+		##
+		## Try to kill older running updates if possible
+		## Equivalent to: fuser -kw "${index}".*
+		##
+		(
+			local IFS=$'\n'
+			shopt -s nullglob
+			for file in "${index_file}".*; do
+				for proc in $( find /proc/*/fd -lname "${file}"
+							 ); do
+					proc="${proc#/proc/}"
+					kill "${proc%%/*}"
+				done
+			done
+		)
+		exec rm --force "${index_file}".* &
+		##
+		## Run all heavy tasks at lowest priority
+		##
+		export PALUDIS_DO_NOTHING_SANDBOXY=yes
+		##
+		## Generate a full search index; this also refreshes the caches
+		## Update the index file only if successfully completed
+		##
+		local temp_suffix="$$.temp"
+		"${cave[@]}" manage-search-index --create \
+					 "${index_file}.${temp_suffix}" &&
+			mv "${index_file}"{."${temp_suffix}",} &&
+			return
+	fi
+	##
+	## Full search index generation failed; just refresh the caches
+	##
+	CAVE_SEARCH_OPTIONS= exec "${cave[@]}" search ""
+}
+hook_run_sync_all_post() {
+	# ensure that einfo etc are available
+	export PATH="$(${PALUDIS_EBUILD_DIR}/utils/canonicalise ${PALUDIS_EBUILD_DIR}/utils/ ):${PATH}"
+	source ${PALUDIS_EBUILD_DIR}/echo_functions.bash
+	source /etc/paludis/paludis_aux.bash
+
+	_bypass check
+	if [[ $? -eq 22 ]]; then
+		return 0
+	fi
+
+	einfo "Update search index..."
+	_update_cave_search_index >/dev/null 2>&1 &
+}
+hook_run_install_all_post() { hook_run_sync_all_post; }
+hook_run_uninstall_all_post() { hook_run_sync_all_post; }
+hook_auto_names() { echo {{un,}install,sync}_all_post; }

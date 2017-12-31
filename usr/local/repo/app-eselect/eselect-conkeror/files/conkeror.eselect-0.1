@@ -1,0 +1,11 @@
+# Copyright 1999-2016 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Id$
+
+DESCRIPTION="Manage /usr/bin/conkeror"
+
+SYMLINK_PATH=/usr/bin/conkeror
+SYMLINK_TARGETS=( conkeror-firefox conkeror-palemoon )
+SYMLINK_DESCRIPTION='conkeror wrapper script'
+
+inherit bin-symlink

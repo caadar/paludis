@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+  <maintainer type="">
+    <email></email>
+    <name>Fonts</name>
+  </maintainer>
+  <use>
+    <flag name="accents">
+      Straight apostrophe and grave accent
+    </flag>
+    <flag name="digit0dotted">
+	  Dotted zero
+    </flag>
+    <flag name="digit0slashed">
+      Slashed zero
+    </flag>
+    <flag name="supasterisk">
+      Raised asterisk
+    </flag>
+    <flag name="acutes">
+      Acute-angled glyphs for less-than and greater-than signs
+    </flag>
+    <flag name="mtilde">
+      Centered tilde
+    </flag>
+    <flag name="nbs-blank">
+	  Normal space glyph for the no-break space instead default open rectangle
+    </flag>
+    <flag name="nbs-dotted">
+      Visible dotted space glyph for the no-break space
+    </flag>
+    <flag name="phyphenminus">
+	  Soft hyphen that looks like a minus sign
+    </flag>
+    <flag name="currflorin">
+      Italic `f' with hook (Florin sign)
+    </flag>
+    <flag name="ltcapengsami">
+      An upper-case N with hook
+    </flag>
+    <flag name="bulgarian">
+      Cyrillic glyphs with Bulgarian italic-like forms
+    </flag>
+    <flag name="serbian">
+      Some italic Cyrillic glyphs with Serbian/Macedonian variants
+    </flag>
+  </use>
+  <upstream>
+    <remote-id type=""></remote-id>
+  </upstream>
+</pkgmetadata>

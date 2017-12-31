@@ -1,0 +1,73 @@
+Binary files paludis.orig/.git/index and paludis/.git/index differ
+diff -ur paludis.orig/src/clients/cave/CMakeLists.txt paludis/src/clients/cave/CMakeLists.txt
+--- paludis.orig/src/clients/cave/CMakeLists.txt	2017-03-22 10:17:14.000000000 +0300
++++ paludis/src/clients/cave/CMakeLists.txt	2017-03-22 12:12:51.000000000 +0300
+@@ -190,6 +190,7 @@
+                           libpaludisargs
+                           libpaludisutil
+                           libpaludisresolver
++                          liboutput
+                           ${CMAKE_DL_LIBS})
+ 
+   add_custom_command(OUTPUT
+diff -ur paludis.orig/src/clients/cave/cmd_execute_resolution.cc paludis/src/clients/cave/cmd_execute_resolution.cc
+--- paludis.orig/src/clients/cave/cmd_execute_resolution.cc	2017-03-22 10:17:14.000000000 +0300
++++ paludis/src/clients/cave/cmd_execute_resolution.cc	2017-03-22 12:22:42.000000000 +0300
+@@ -78,6 +78,7 @@
+ #include <paludis/filter.hh>
+ #include <paludis/elike_blocker.hh>
+ #include <paludis/repository.hh>
++#include <src/output/colour.hh>
+ 
+ #include <set>
+ #include <iterator>
+@@ -1533,7 +1534,12 @@
+ 
+         std::string visit(const FetchJob & j) const
+         {
+-            return "fetch " + stringify_id_or_spec(env, j.origin_id_spec());
++            /* Make `origin_id_spec' more bright. (Hardcoded
++               colour. Have no time to implement proper formatting
++               with user configuration here!) */
++            /* First attempt (just for the record):
++            return std::string("fetch ") + "\033[37m" + stringify_id_or_spec(env, j.origin_id_spec()) + "\033[0m"; */
++            return "fetch " + colour(cl_white, stringify_id_or_spec(env, j.origin_id_spec()));
+         }
+ 
+         std::string visit(const InstallJob & j) const
+@@ -1560,13 +1566,13 @@
+                 }
+             }
+ 
+-            return "install " + stringify_id_or_spec(env, j.origin_id_spec()) + " to ::" + stringify(j.destination_repository_name()) + r;
++            return "install " + colour(cl_white, stringify_id_or_spec(env, j.origin_id_spec())) + " to ::" + stringify(j.destination_repository_name()) + r;
+         }
+ 
+         std::string visit(const UninstallJob & j) const
+         {
+-            return "uninstall " + join(j.ids_to_remove_specs()->begin(), j.ids_to_remove_specs()->end(), ", ",
+-                    std::bind(&stringify_id_or_spec, env, std::placeholders::_1));
++            return "uninstall " + colour(cl_white, join(j.ids_to_remove_specs()->begin(), j.ids_to_remove_specs()->end(), ", ",
++                    std::bind(&stringify_id_or_spec, env, std::placeholders::_1)));
+         }
+ 
+     };
+diff -ur paludis.orig/src/output/colour.hh paludis/src/output/colour.hh
+--- paludis.orig/src/output/colour.hh	2017-03-22 10:17:14.000000000 +0300
++++ paludis/src/output/colour.hh	2017-03-22 10:47:36.000000000 +0300
+@@ -32,6 +32,7 @@
+     cl_yellow        = 33,
+     cl_blue          = 34,
+     cl_pink          = 35,
++    cl_white         = 37,
+     cl_grey          = 38,
+ 
+     cl_bold_red      = cl_red + 100,
+@@ -39,6 +40,7 @@
+     cl_bold_yellow   = cl_yellow + 100,
+     cl_bold_blue     = cl_blue + 100,
+     cl_bold_pink     = cl_pink + 100,
++    cl_bold_white    = cl_white + 100,
+ 
+ #if PALUDIS_COLOUR_PINK==1
+     cl_package_name  = cl_bold_pink,

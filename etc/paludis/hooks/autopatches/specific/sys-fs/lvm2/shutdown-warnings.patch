@@ -1,0 +1,12 @@
+--- files/lvm.rc-2.02.116-r6    2016-10-29 15:51:00.986911502 +0200
++++ ./etc/init.d/lvm     2016-11-02 23:05:23.724452676 +0100
+@@ -122,7 +122,8 @@
+ 			lvm_commands="${lvm_commands}vgchange --sysinit -a ln ${VGS}\n"
+ 			# Order of this is important, have to work around dash and LVM readline
+ 			printf "%b\n" "${lvm_commands}" | $lvm_path /proc/self/fd/0 --config "${config}" >/dev/null
+-			eend $? "Failed (possibly some LVs still needed for /usr or root)"
++			local pret=$?
++			[ "$RC_RUNLEVEL" = shutdown ] || eend $pret "Failed (possibly some LVs still needed for /usr or root)"
+         fi
+ 
+ 	einfo "Finished shutting down the Logical Volume Manager"

@@ -1,0 +1,68 @@
+diff -ur paludis-2.6.0/src/clients/cave/cmd_display_resolution.cc paludis-2.6.0.new/src/clients/cave/cmd_display_resolution.cc
+--- .a/src/clients/cave/cmd_display_resolution.cc	2016-04-29 22:12:48.000000000 +0300
++++ .b/src/clients/cave/cmd_display_resolution.cc	2016-06-12 15:21:19.000000000 +0300
+@@ -611,6 +611,9 @@
+                         added = true;
+                 }
+ 
++                if (cmdline.display_options.a_my_laconic_display.specified() && (! (changed || added)))
++                    continue;
++
+                 if (co_implicit == (*i)->origin() || (*k)->hidden())
+                 {
+                     if (added || changed)
+@@ -1262,7 +1265,10 @@
+ 
+         display_one_description(env, cmdline, decision.origin_id(), ! old_id);
+         display_choices(env, cmdline, decision.origin_id(), decision.if_changed_choices(), old_id, choices_to_explain);
+-        display_reasons(resolution, decision.if_changed_choices(), more_annotations);
++        if (! cmdline.display_options.a_my_laconic_display.specified())
++            display_reasons(resolution, decision.if_changed_choices(), more_annotations);
++        else if (ct_new == decision.change_type())
++            display_reasons(resolution, decision.if_changed_choices(), more_annotations);
+         display_masks(env, decision);
+         if (maybe_totals)
+             display_downloads(env, cmdline, decision.origin_id(), maybe_totals);
+@@ -1271,8 +1277,17 @@
+         if (confirmations)
+             display_confirmations(decision);
+         if (! cycle_notes.empty())
+-            cout << fuc(unorderable ? fs_cycle_notes_error() : fs_cycle_notes(),
+-                    fv<'s'>(cycle_notes));
++        {
++            if (cmdline.display_options.a_my_laconic_display.specified())
++            {
++                if (ct_new == decision.change_type())
++                    cout << fuc(unorderable ? fs_cycle_notes_error() : fs_cycle_notes(),
++                            fv<'s'>(cycle_notes));
++            }
++            else
++                cout << fuc(unorderable ? fs_cycle_notes_error() : fs_cycle_notes(),
++                        fv<'s'>(cycle_notes));
++        }
+     }
+ 
+     void display_one_uninstall(
+diff -ur paludis-2.6.0/src/clients/cave/resolve_cmdline.cc paludis-2.6.0.new/src/clients/cave/resolve_cmdline.cc
+--- .a/src/clients/cave/resolve_cmdline.cc	2016-04-29 22:12:48.000000000 +0300
++++ .b/src/clients/cave/resolve_cmdline.cc	2016-06-12 15:21:19.000000000 +0300
+@@ -343,6 +343,8 @@
+             ("all",                        "Show for all packages"),
+             "new"
+             ),
++    a_my_laconic_display(&g_display_options, "my-laconic-display", '\0',
++            "Makes display output more laconic in some cases", true),
+     g_explanations(this, "Explanations", "Options requesting the resolver explain a particular decision "
+             "that it made"),
+     a_explain(&g_explanations, "explain", 'X', "Explain why the resolver made a particular decision. The "
+diff -ur paludis-2.6.0/src/clients/cave/resolve_cmdline.hh paludis-2.6.0.new/src/clients/cave/resolve_cmdline.hh
+--- .a/src/clients/cave/resolve_cmdline.hh	2016-04-29 22:12:48.000000000 +0300
++++ .b/src/clients/cave/resolve_cmdline.hh	2016-06-12 15:21:19.000000000 +0300
+@@ -154,6 +154,7 @@
+             args::ArgsGroup g_display_options;
+             args::EnumArg a_show_option_descriptions;
+             args::EnumArg a_show_descriptions;
++            args::SwitchArg a_my_laconic_display;
+ 
+             args::ArgsGroup g_explanations;
+             args::StringSetArg a_explain;

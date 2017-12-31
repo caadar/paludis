@@ -1,0 +1,23 @@
+--- a/modules/page-modes/key-kill.js	2016-05-31 00:35:46.281321275 +0300
++++ b/modules/page-modes/key-kill.js	2016-05-31 00:35:46.286321396 +0300
+***************
+*** 17,25 ****
+        {
+            return;
+        }
+!       if (mozilla_version_below_25) {
+!           event.preventDefault();
+!       }
+        event.stopPropagation();
+    }
+  }
+--- 17,25 ----
+        {
+            return;
+        }
+!       //if (mozilla_version_below_25) {
+!       //    event.preventDefault();
+!       //}
+        event.stopPropagation();
+    }
+  }

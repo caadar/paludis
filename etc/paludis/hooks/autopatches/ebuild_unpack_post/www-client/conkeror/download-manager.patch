@@ -1,0 +1,23 @@
+--- a/modules/download-manager.js	2016-12-18 20:37:00.000000000 +0300
++++ b/download-manager.js	2016-12-18 20:54:33.384816559 +0300
+@@ -1014,13 +1014,13 @@
+ };
+ 
+ 
+-interactive("download-manager-show-builtin-ui",
+-    "Show the built-in (Firefox-style) download manager window.",
+-    function (I) {
+-        Components.classesByID["{7dfdf0d1-aff6-4a34-bad1-d0fe74601642}"]
+-            .getService(Ci.nsIDownloadManagerUI)
+-            .show(I.window);
+-    });
++// interactive("download-manager-show-builtin-ui",
++//     "Show the built-in (Firefox-style) download manager window.",
++//     function (I) {
++//         Components.classesByID["{7dfdf0d1-aff6-4a34-bad1-d0fe74601642}"]
++//             .getService(Ci.nsIDownloadManagerUI)
++//             .show(I.window);
++//     });
+ 
+ 
+ /*

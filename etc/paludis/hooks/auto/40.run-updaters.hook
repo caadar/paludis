@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# ensure that einfo etc are available
+export PATH="$(${PALUDIS_EBUILD_DIR}/utils/canonicalise ${PALUDIS_EBUILD_DIR}/utils/ ):${PATH}"
+source ${PALUDIS_EBUILD_DIR}/echo_functions.bash
+source /etc/paludis/paludis_aux.bash
+
+hook_run_merger_install_post()
+{
+	case "${CATEGORY}/${PN}" in
+		"app-editors/emacs")
+			echo "app-editors/emacs" >> "${_hook_updater_list}"
+			;;
+		"app-editors/emacs-vcs")
+			echo "app-editors/emacs-vcs" >> "${_hook_updater_list}"
+			;;
+		"dev-lang/perl")
+			echo "dev-lang/perl" >> "${_hook_updater_list}"
+			;;
+		# "dev-lang/python")
+		# 	echo "dev-lang/python" >> "${_hook_updater_list}"
+		#	;;
+		"dev-lang/ghc")
+			echo "dev-lang/ghc" >> "${_hook_updater_list}"
+			;;
+		*)
+			return 0
+			;;
+	esac
+}
+
+_updater()
+{
+
+	command -v "$1" >/dev/null 2>&1 || _kill_cave_now "Command \`$1\' not found"
+	einfo "Run $1..."
+	"$@"
+}
+
+hook_run_install_all_post()
+{
+
+	_bypass check
+	if [[ $? -eq 22 ]]; then
+		return 0
+	fi
+
+	if [[ ! -f "${_hook_updater_list}" ]]; then
+		return 0
+	fi
+
+	_bypass set_hook_override_flag
+
+	sort -u -o "${_hook_updater_list}" "${_hook_updater_list}"
+
+	while read -r line; do
+		case "${line}" in
+			"app-editors/emacs"|"app-editors/emacs-vcs")
+				_updater emacs-updater -P paludis --batch
+				;;
+			"dev-lang/perl")
+				_updater perl-cleaner -P paludis --all
+				;;
+			# "dev-lang/python")
+			# 	_updater python-updater -P paludis
+			# 	;;
+			"dev-lang/ghc")
+				_updater haskell-updater -P paludis
+				;;
+		esac
+	done < "${_hook_updater_list}"
+
+	rm -f "${_hook_updater_list}"
+	_bypass delete_hook_override_flag
+
+}
+
+hook_auto_names() { echo merger_install_post install_all_post; }

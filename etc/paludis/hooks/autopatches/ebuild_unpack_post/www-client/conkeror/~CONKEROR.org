@@ -1,0 +1,6 @@
+* modeline widget for the number of previous and next pages in current buffer session
+
+[[http://www.mozdev.org/pipermail/conkeror/2008-September/001124.html][mozdev.org/pipermail/conkeror/2008-September/001124.html]]
+[[http://www.mozdev.org/pipermail/conkeror/2008-September/001080.html][mozdev.org/pipermail/conkeror/2008-September/001080.html]]
+
+[[http://bugs.conkeror.org/issue486][bugs.conkeror.org/issue486]]

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+hook_run_merger_install_post()
+{
+	# ensure that einfo etc are available
+	export PATH="$(${PALUDIS_EBUILD_DIR}/utils/canonicalise ${PALUDIS_EBUILD_DIR}/utils/ ):${PATH}"
+	source ${PALUDIS_EBUILD_DIR}/echo_functions.bash
+	source /etc/paludis/paludis_aux.bash
+
+	if [[ "${CATEGORY}/${PN}" != "x11-misc/xdg-utils" ]]; then
+		return 0
+	fi
+
+	local set="xdg-utils-set"
+
+	_bypass set_hook_override_flag
+	einfo "Rebuilding set..."
+	cave --log-level silent resolve --execute --lazy --preserve-world ${set}
+	_bypass delete_hook_override_flag
+}

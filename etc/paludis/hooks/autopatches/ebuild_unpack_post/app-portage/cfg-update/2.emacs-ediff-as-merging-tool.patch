@@ -1,0 +1,91 @@
+--- ./cfg-update	2016-11-11 07:17:25.280433009 +0300
++++ ./cfg-update.new	2016-11-11 07:17:25.292433285 +0300
+@@ -19,6 +19,11 @@
+ #
+ 
+ ######################################################################################################################
++#                                          ADDED_CHANGES                                                             #
++######################################################################################################################
++
++# 1. Some support for Emacs Ediff through external script
++
+ #                                          TODO_LIST                                                                 #
+ ######################################################################################################################
+ 
+@@ -651,7 +656,7 @@
+         if ($opt_d >= 1) { print "$tab"."merge_tool_name                   = $merge_tool_name\n"; }
+     }
+ # Check if tool can handle manual 2-way merges...
+-    if ($merge_tool =~ /\/kdiff3$|^kdiff3$|\/xxdiff$|^xxdiff$|\/sdiff$|^sdiff$|\/imediff2$|^imediff2$|\/meld$|^meld$|\/kompare$|^kompare$|\/tkdiff$|^tkdiff$|\/vimdiff$|^vimdiff$|\/gvimdiff$|^gvimdiff$/) {
++    if ($merge_tool =~ /\/kdiff3$|^kdiff3$|\/xxdiff$|^xxdiff$|\/sdiff$|^sdiff$|\/imediff2$|^imediff2$|\/meld$|^meld$|\/kompare$|^kompare$|\/tkdiff$|^tkdiff$|\/vimdiff$|^vimdiff$|\/gvimdiff$|^gvimdiff$|\/emacs-ediff$|^emacs-ediff$/) {
+         $tool_supports_2way = "yes";
+         if ($opt_d >= 1) { print "$tab"."tool_supports_2way                = $tool_supports_2way\n"; }
+     } else {
+@@ -661,7 +666,7 @@
+         if ($opt_d >= 1) { print "$tab"."stage4 disabled...\n"; }
+     }
+ # Check if tool can handle manual 3-way merges...
+-    if ($merge_tool =~ /\/xxdiff$|^xxdiff$|\/kdiff3$|^kdiff3$|\/meld$|^meld$|\/tkdiff$|^tkdiff$/) {
++    if ($merge_tool =~ /\/xxdiff$|^xxdiff$|\/kdiff3$|^kdiff3$|\/meld$|^meld$|\/tkdiff$|^tkdiff|\/emacs-ediff$|^emacs-ediff$/) {
+         $tool_supports_3way = "yes";
+         if ($opt_d >= 1) { print "$tab"."tool_supports_3way                = $tool_supports_3way\n"; }
+     } else {
+@@ -671,7 +676,7 @@
+         if ($opt_d >= 1) { print "$tab"."stage3 disabled...\n"; }
+     }
+ # Check if tool saves .merge file when aborted...
+-    if ($merge_tool_name =~ /\/kdiff3$|^kdiff3$|\/xxdiff$|^xxdiff$|\/imediff2$|^imediff2$|\/meld$|^meld$|\/tkdiff$|^tkdiff$|\/gtkdiff$|^gtkdiff$/) {
++    if ($merge_tool_name =~ /\/kdiff3$|^kdiff3$|\/xxdiff$|^xxdiff$|\/imediff2$|^imediff2$|\/meld$|^meld$|\/tkdiff$|^tkdiff$|\/gtkdiff$|^gtkdiff|\/emacs-ediff$|^emacs-ediff$/) {
+         $tool_saves_mergefile_when_aborted = "yes";
+         if ($opt_d >= 1) { print "$tab"."tool_saves_mergefile_when_aborted = $tool_saves_mergefile_when_aborted\n"; }
+     } else {
+@@ -694,22 +699,24 @@
+     if (($_[0] =~ /execute/) && ($tool_needs_gui =~ "yes")) { &check_gui; }
+     chomp (my $screenwidth = `stty size | awk '{ print \$2 }' $debug`); # determine width of current screen or window
+     $cmd = "$_[1] $file1 $file2 $debug";                                # default command string for basic functionality with unsupported tools
+-    if (($_[1] =~ /\/xxdiff$|^xxdiff$/     ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] $xxdiff_style --resource \'Show.PaneMergedView:true Show.Toolbar:true\' -m $file1 $file4 $file2 -M $file5 $debug"; }
+-    if (($_[1] =~ /\/xxdiff$|^xxdiff$/     ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $xxdiff_style --resource \'Show.PaneMergedView:true Show.Toolbar:true\' $file1 $file2 -M $file5 $debug"; }
+-    if (($_[1] =~ /\/kdiff3$|^kdiff3$/     ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] -m $file1 $file2 -b $file4 -o $file5 $debug"; }
+-    if (($_[1] =~ /\/kdiff3$|^kdiff3$/     ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $file1 $file2 -o $file5 $debug"; }
+-    if  ($_[1] =~ /\/kompare$|^kompare$/   )                                 { $cmd = "$_[1] $file2 $file1 $debug"; }
+-    if (($_[1] =~ /\/meld$|^meld$/         ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] $file1 $file4 $file2 $debug"; }
+-    if (($_[1] =~ /\/meld$|^meld$/         ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $file1 $file2 $debug"; }
+-    if (($_[1] =~ /\/tkdiff$|^tkdiff$/     ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] $file1 $file2 -a $file4 -o $file5 $debug"; }
+-    if (($_[1] =~ /\/tkdiff$|^tkdiff$/     ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $file1 $file2 -o $file5 $debug"; }
+-    if  ($_[1] =~ /\/vimdiff$|^vimdiff$/   )                                 { $cmd = "$_[1] -c 'saveas $file1' -c next -c 'setlocal nomodifiable readonly' -c prev $file1 $file2 --nofork $debug"; }
+-    if  ($_[1] =~ /\/gvimdiff$|^gvimdiff$/ )                                 { $cmd = "$_[1] -c 'saveas $file1' -c next -c 'setlocal nomodifiable readonly' -c prev $file1 $file2 --nofork 2>\&1>/dev/null"; }
+-    if  ($_[1] =~ /\/gtkdiff$|^gtkdiff$/   )                                 { $cmd = "$_[1] -o $file5 $file1 $file2 $debug"; }
+-    if  ($_[1] =~ /\/imediff2$|^imediff2$/ )                                 { $cmd = "$_[1] -c -o $file5 $file1 $file2"; }
+-    if  ($_[1] =~ /\/sdiff$|^sdiff$/       )                                 { $cmd = "$_[1] -w $screenwidth -d -o $file5 $file1 $file2"; }
+-    if  ($_[1] =~ /\/diff3$|^diff3$/       )                                 { $cmd = "$_[1] -m $file2 $file4 $file1 > $file5 $debug"; } # by specifying $file1 as the third file, the current settings will will be placed lower in the merged file. this may prevent trouble in case of unsolved merge conflicts...
+-    if  ($_[1] =~ /\/diff$|^diff$/         )                                 { $cmd = "$_[1] -W $screenwidth $file1 $file2 $debug"; } # viewing only...
++    if (($_[1] =~ /\/xxdiff$|^xxdiff$/           ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] $xxdiff_style --resource \'Show.PaneMergedView:true Show.Toolbar:true\' -m $file1 $file4 $file2 -M $file5 $debug"; }
++    if (($_[1] =~ /\/xxdiff$|^xxdiff$/           ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $xxdiff_style --resource \'Show.PaneMergedView:true Show.Toolbar:true\' $file1 $file2 -M $file5 $debug"; }
++    if (($_[1] =~ /\/kdiff3$|^kdiff3$/           ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] -m $file1 $file2 -b $file4 -o $file5 $debug"; }
++    if (($_[1] =~ /\/kdiff3$|^kdiff3$/           ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $file1 $file2 -o $file5 $debug"; }
++    if  ($_[1] =~ /\/kompare$|^kompare$/         )                                 { $cmd = "$_[1] $file2 $file1 $debug"; }
++    if (($_[1] =~ /\/meld$|^meld$/               ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] $file1 $file4 $file2 $debug"; }
++    if (($_[1] =~ /\/meld$|^meld$/               ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $file1 $file2 $debug"; }
++    if (($_[1] =~ /\/tkdiff$|^tkdiff$/           ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] $file1 $file2 -a $file4 -o $file5 $debug"; }
++    if (($_[1] =~ /\/tkdiff$|^tkdiff$/           ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $file1 $file2 -o $file5 $debug"; }
++    if  ($_[1] =~ /\/vimdiff$|^vimdiff$/         )                                 { $cmd = "$_[1] -c 'saveas $file1' -c next -c 'setlocal nomodifiable readonly' -c prev $file1 $file2 --nofork $debug"; }
++    if  ($_[1] =~ /\/gvimdiff$|^gvimdiff$/       )                                 { $cmd = "$_[1] -c 'saveas $file1' -c next -c 'setlocal nomodifiable readonly' -c prev $file1 $file2 --nofork 2>\&1>/dev/null"; }
++    if  ($_[1] =~ /\/gtkdiff$|^gtkdiff$/         )                                 { $cmd = "$_[1] -o $file5 $file1 $file2 $debug"; }
++    if  ($_[1] =~ /\/imediff2$|^imediff2$/       )                                 { $cmd = "$_[1] -c -o $file5 $file1 $file2"; }
++    if  ($_[1] =~ /\/sdiff$|^sdiff$/             )                                 { $cmd = "$_[1] -w $screenwidth -d -o $file5 $file1 $file2"; }
++    if  ($_[1] =~ /\/diff3$|^diff3$/             )                                 { $cmd = "$_[1] -m $file2 $file4 $file1 > $file5 $debug"; } # by specifying $file1 as the third file, the current settings will will be placed lower in the merged file. this may prevent trouble in case of unsolved merge conflicts...
++    if  ($_[1] =~ /\/diff$|^diff$/               )                                 { $cmd = "$_[1] -W $screenwidth $file1 $file2 $debug"; } # viewing only...
++    if (($_[1] =~ /\/emacs-ediff$|^emacs-ediff$/ ) && ($threeway_update =~ "yes")) { $cmd = "$_[1] $file1 $file2 $file4 $file5"; } # `$debug' dropped for more informative script output emacs errors filtered out by script itself
++    if (($_[1] =~ /\/emacs-ediff$|^emacs-ediff$/ ) && ($threeway_update =~ "no" )) { $cmd = "$_[1] $file1 $file2 $file5"; } # the same...
+     if  ($_[0] =~ /execute/) {
+         if ($opt_d >=1) { print "$tab"."  $cmd\n"; }
+         system("$cmd");                                                 # launch the tool
+@@ -2324,7 +2331,7 @@
+         print "$tab"."\n";
+         print "$tab"."  -t [tool], --tool [tool]\n";
+         print "$tab"."          Set mergetool, overrides the default setting in $settings\n";
+-        print "$tab"."          GUI tools: xxdiff, kdiff3, meld, tkdiff, gtkdiff, gvimdiff\n";
++        print "$tab"."          GUI tools: xxdiff, kdiff3, meld, tkdiff, gtkdiff, gvimdiff, emacs-ediff\n";
+         print "$tab"."          CLI tools: vimdiff, sdiff, imediff2\n";
+         print "$tab"."\n";
+         print "$tab"."  -p, --pretend\n";

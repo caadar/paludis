@@ -1,0 +1,19 @@
+*** a/ctree.h	2016-02-26 20:22:09.000000000 +0300
+--- b/ctree.h	2016-06-01 22:02:41.984211798 +0300
+***************
+*** 137,143 ****
+   * we can actually store much bigger names, but lets not confuse the rest
+   * of linux
+   */
+! #define BTRFS_NAME_LEN 255
+  
+  /*
+   * Theoretical limit is larger, but we keep this down to a sane
+--- 137,143 ----
+   * we can actually store much bigger names, but lets not confuse the rest
+   * of linux
+   */
+! #define BTRFS_NAME_LEN 1023
+  
+  /*
+   * Theoretical limit is larger, but we keep this down to a sane

@@ -1,0 +1,35 @@
+*** ./nls/ru_RU.UTF-8/XLC_LOCALE.pre	2015-03-10 01:28:45.000000000 +0300
+--- ./nls/ru_RU.UTF-8/XLC_LOCALE.new	2016-05-31 00:03:47.000000000 +0300
+***************
+*** 40,54 ****
+  		primary	KOI8-R:GR
+  	}
+  }
+! XCOMM	fs3 class (MICROSOFT-CP1251)
+! fs3	{
+! 	charset	{
+! 		name	MICROSOFT-CP1251:GR
+! 	}
+! 	font	{
+! 		primary	MICROSOFT-CP1251:GR
+! 	}
+! }
+  XCOMM	fs4 class (ISO8859-5)
+  fs4	{
+  	charset	{
+--- 40,54 ----
+  		primary	KOI8-R:GR
+  	}
+  }
+! #XCOMM	fs3 class (MICROSOFT-CP1251)
+! #fs3	{
+! #	charset	{
+! #		name	MICROSOFT-CP1251:GR
+! #	}
+! #	font	{
+! #		primary	MICROSOFT-CP1251:GR
+! #	}
+! #}
+  XCOMM	fs4 class (ISO8859-5)
+  fs4	{
+  	charset	{

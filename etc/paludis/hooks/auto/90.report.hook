@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# ensure that einfo etc are available
+export PATH="$(${PALUDIS_EBUILD_DIR}/utils/canonicalise ${PALUDIS_EBUILD_DIR}/utils/ ):${PATH}"
+source ${PALUDIS_EBUILD_DIR}/echo_functions.bash
+source /etc/paludis/paludis_aux.bash
+
+_cave_report()
+{
+
+	_bypass check
+	if [[ $? -eq 22 ]]; then
+		return 0
+	fi
+
+	# einfo "revdep-pax..."
+	# revdep-pax -f 2>&1 | sed '/^!!! Invalid db entry: .*-scm$/d'
+	# revdep-pax -r 2>&1 | sed '/^!!! Invalid db entry: .*-scm$/d'
+    ## PAX markings only matter if PAX is enabled, which it won't be
+    ## on mainline kernels since I don't believe they include the PAX
+    ## patches. So the warnings, while annoying, don't signify a real
+    ## problem.
+
+	einfo "cave report..."
+	cave report
+	exit 0
+}
+
+hook_run_install_all_post() { _cave_report; }
+hook_run_uninstall_all_post() { _cave_report; }
+hook_auto_names() { echo {un,}install_all_post; }

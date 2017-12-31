@@ -1,0 +1,128 @@
+* info
+
+[[file://usr/share/doc/paludis/html/index.html][/usr/share/doc/paludis]]
+[[http://paludis.exherbo.org/][paludis.exherbo.org]]
+
+[[http://paludis.exherbo.org/trac/query?status=!closed&component=clients%252Fcave][paludis.exherbo.org/trac]]
+[[http://lists.exherbo.org/pipermail/paludis-user/][The paludis-user Archives]]
+
+[[http://q.deltaquadrant.org/index.php/Paludis][deltaquadrant.org/Paludis]]
+
+
+* show
+
+#+BEGIN_EXAMPLE
+cave show system
+cave show world
+cave show -s1 -t package '<cathegory>/*'
+cave show '*/*::installed'
+cave show '*/*::rusxmms->'
+#+END_EXAMPLE
+
+
+* install
+
+#+BEGIN_EXAMPLE
+cave perform install --destination installed "=media-gfx/mirage-0.9.5.1::gentoo" --abort-at-phase configure
+#+END_EXAMPLE
+
+-----
+
+[[http://paludis.exherbo.org/faq/different.html#package_provided][paludis.exherbo.org/faq/different.html#package_provided]]
+
+
+#+BEGIN_EXAMPLE
+cave import --install-under /usr/local/texlive/2016 app-text/texlive-core 2016 -p a -x
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+mkdir -p /etc/paludis/package.provided/stumpwm
+cave import --location /etc/paludis/package.provided/stumpwm --install-under /etc/paludis/package.provided/stumpwm x11-wm/stumpwm scm -x
+#+END_EXAMPLE
+
+* reinstall
+
+Force any installed package that is dependent upon any installed
+package matching the supplied spec to be reinstalled:
+
+#+BEGIN_EXAMPLE
+cave resolve dev-libs/icu app-text/poppler -D dev-libs/icu -D app-text/poppler
+#+END_EXAMPLE
+
+-----
+
+Reinstall every package which has files in a specific directory
+(e.g. for Perl updates):
+
+#+BEGIN_EXAMPLE
+cave resolve -1x $(cave print-owners -f '%c/%p:%s ' /usr/lib64/perl5/vendor_perl)
+#+END_EXAMPLE
+
+
+* repo
+
+[[https://overlays.gentoo.org][overlays.gentoo.org]]
+
+-----
+
+1. configure `unavailable.conf'
+2. =cave sync=
+3. =cave show -t package repository/*=             # `layman -l' analog
+4. =cave resolve repository/<repository_name> -x=  # add repo
+
+* customize
+
+#+BEGIN_EXAMPLE
+cave dump-cave-formats-conf > ~/.cave/formats.conf
+#+END_EXAMPLE
+
+* hooks
+
+Paludis' trunk has now [2007-05-25 Fri] `_override' hooks for `merger'
+and `unmerger' actions. They are a little different than all the hooks
+till now as their effect is determined from their output, more
+specifically `unmerger_unlink_*_override' has two options:
+
+"skip" - skips the action
+"force" - force it (without the usual tests like type or mtime check)
+
+And `merger_install_*_override' has only the "skip" option. Also no
+output means the default.
+
+* wrappers
+
+[[http://paludis.exherbo.org/trac/ticket/1312#comment:9][paludis.exherbo.org/trac/ticket/1312#comment:9]]
+
+#+BEGIN_SRC shell
+#!/bin/sh
+f="`mktemp`"
+cave "$@" | tee "$f"
+grep -q 'I encountered the following errors:' "$f" && {
+	atoms="`sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]//g" "$f" | sed -ne ':1;/^!   /{x;bq};/\/[0-9][0-9.]*=/{x;p;b1};:q' | uniq | sed -e 's#!   ##'`"
+	for a in $atoms; do
+		append="$append -D $a"
+	done
+	echo "$0" "$@" $append
+	"$0" "$@" $append
+}
+rm "$f"
+#+END_SRC
+
+* distcc
+
+#+NAME: bashrc
+#+BEGIN_QUOTE
+DISTCC_DIR="/var/tmp/paludis/.distcc"
+DISTCC_HOSTS="localhost another_host"
+PATH="/usr/lib/distcc/bin:${PATH}"
+SANDBOX_WRITE="${SANDBOX_WRITE}:${DISTCC_DIR}"
+#+END_QUOTE
+
+* applying user patches
+
+[[https://github.com/zaufi/paludis-hooks/tree/master/auto-patch][github.com/zaufi/paludis-hooks/auto-patch]]
+[[http://kloeri.livejournal.com/13667.html][kloeri.livejournal.com// Exherbo rejected my patch, now what?]]
+
+* kernel modules etc
+
+[[http://blog.piotrj.org/search/label/paludis][blog.piotrj.org/paludis]]

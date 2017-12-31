@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+hook_run_merger_install_post()
+{
+	source /etc/paludis/paludis_aux.bash
+
+	if [[ "${CATEGORY}/${PN}" != "x11-wm/stumpwm-contrib" ]]; then
+		return 0
+	fi
+
+	_stumpish="/usr/share/common-lisp/source/stumpwm-contrib/util/stumpish/stumpish"
+
+	if [[ $(stat --printf="%a" ${_stumpish}) = 755 ]]
+	then
+		einfo "Stumpish has right permissions. Correction not needed"
+	else
+		einfo "Stumpish permissions are set as 0755"
+		chmod 0755 ${_stumpish}
+	fi
+}

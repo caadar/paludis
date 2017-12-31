@@ -1,0 +1,28 @@
+diff -ru ./include/linux/compat.h ./include/linux/compat.h.new
+--- a/include/linux/compat.h	2016-06-28 14:12:37.000000000 +0300
++++ b/include/linux/compat.h	2016-06-28 09:19:09.000000000 +0300
+@@ -206,7 +206,7 @@
+ 	u32		d_ino;
+ 	compat_off_t	d_off;
+ 	u16		d_reclen;
+-	char		d_name[256];
++	char		d_name[1024];
+ };
+ 
+ struct compat_ustat {
+diff -ru ./include/uapi/linux/limits.h ./include/uapi/linux/limits.h.new
+--- a/include/uapi/linux/limits.h	2016-06-28 14:11:57.000000000 +0300
++++ b/include/uapi/linux/limits.h	2016-06-28 09:19:09.000000000 +0300
+@@ -8,10 +8,10 @@
+ #define LINK_MAX         127	/* # links a file may have */
+ #define MAX_CANON        255	/* size of the canonical input queue */
+ #define MAX_INPUT        255	/* size of the type-ahead buffer */
+-#define NAME_MAX         255	/* # chars in a file name */
++#define NAME_MAX        1023	/* # chars in a file name */
+ #define PATH_MAX        4096	/* # chars in a path name including nul */
+ #define PIPE_BUF        4096	/* # bytes in atomic write to a pipe */
+-#define XATTR_NAME_MAX   255	/* # chars in an extended attribute name */
++#define XATTR_NAME_MAX  1023	/* # chars in an extended attribute name */
+ #define XATTR_SIZE_MAX 65536	/* size of an extended attribute value (64k) */
+ #define XATTR_LIST_MAX 65536	/* size of extended attribute namelist (64k) */
+ 
