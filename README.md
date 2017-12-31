@@ -1,3 +1,3 @@
 # paludis-config
 
-Just my Paludis setup.
+Just my Paludis setup (Gentoo).
