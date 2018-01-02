@@ -1,3 +1,79 @@
+* update world
+
+#+BEGIN_EXAMPLE
+cave sync
+cave.resolve_complete world
+cave.resolve_complete installed-packages
+cfg-update
+config-decruft
+cave report
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+# find /usr/local/repo-bin -mindepth 1 -maxdepth 1 -name "profiles" -prune -o -exec /bin/rm -rf {} \;
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+eselect profile list
+cave show -n gcc glibc binutils
+cave resolve gcc binutils glibc -x1
+gcc-config -l
+binutils-config -l
+source /etc/profile
+#nice cave resolve gcc binutils glibc -x1z # --via-binary '*/*'
+cave.resolve_complete toolchain -x1 && cave.resolve_complete toolchain -x1 && cave.resolve_complete toolchain -x1
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+cave resolve gentoo-sources
+eselect kernel list
+/usr/local/gk && reboot
+eclean-kernel -n3 -p
+#+END_EXAMPLE
+:HIDDEN:
+
+[[https://wiki.archlinux.org/index.php/Grsecurity#Out-of-tree_kernel_module_compilation_failure][Archwiki// Out-of-tree kernel module compilation failure]]
+
+PaX and grsecurity implement some hardening features via GCC
+plugins. The compiler configuration/version used to build the plugins
+provided in the package needs to be the same when building a kernel
+module. For example, the compiler provided in the gcc-multilib package
+will not work - one should use the same compiler toolchain that was
+used to build the kernel. This also means linux-grsec <kernel> needs
+to be rebuilt after even minor GCC upgrades before modules built with
+the new compiler can work with it.
+
+:END:
+
+#+BEGIN_EXAMPLE
+tail /etc/paludis/world
+cave purge
+ls /var/cache/paludis/distfiles/egit-src
+find /etc -mtime +900
+cave print-unmanaged-files -r /etc
+cave print-unmanaged-files -r /lib -r /opt
+cave print-unmanaged-files -r /bin -r /sbin
+cave print-unmanaged-files -r /usr/bin -r /usr/sbin
+cave print-unmanaged-files -r /usr/include -r /usr/libexec
+cave print-unmanaged-files -r /usr/lib32 -r /usr/lib64
+cave print-unmanaged-files -r /usr/share
+cave print-unmanaged-files -r /usr/x86_64-pc-linux-gnu
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+cat /etc/paludis/package_mask.conf
+cave.reinstall_everything installed-packages -x --fetch
+cave.reinstall_everything system -x # --via-binary '*/*'
+cave.reinstall_everything installed-packages -x
+cave uninstall <GLIBC_OLD> <BINUTILS_OLD> <GCC_OLD>
+#+END_EXAMPLE
+
+#+BEGIN_EXAMPLE
+config-decruft
+ls /var/tmp/paludis
+#+END_EXAMPLE
+
+
 * info
 
 [[file://usr/share/doc/paludis/html/index.html][/usr/share/doc/paludis]]
